@@ -287,10 +287,7 @@
       </div>
     </div>
 
-    <div class="btn-row">
-      <button class="btn btn-html" onclick="copyHTML()">📋 Copiar HTML</button>
-      <button class="btn btn-png" id="btn-png" onclick="exportPNG()">🖼 Exportar PNG</button>
-    </div>
+    <button class="btn btn-png" id="btn-png" onclick="exportPNG()" style="width:100%;margin-top:18px;">🖼 Exportar PNG</button>
     <div class="msg" id="msg"></div>
 
   </div>
@@ -464,23 +461,6 @@
       + '</tr></table>';
   }
 
-  // ── COPIAR HTML ──
-  function copyHTML() {
-    var html = buildHTML();
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(html).then(function() {
-        showMsg('✓ Copiado! Cole no seu cliente de email.', '#2db659');
-      });
-    } else {
-      var ta = document.createElement('textarea');
-      ta.value = html;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-      showMsg('✓ Copiado! Cole no seu cliente de email.', '#2db659');
-    }
-  }
 
   // ── EXPORTAR PNG (canvas direto — alta qualidade) ──
   function exportPNG() {
@@ -569,11 +549,32 @@
 
       // Redes sociais
       var sx = contentX + gw + 10 * SCALE;
-      var socials = ['📷  @meirelesefreitas', 'fb  /meirelesefreitas', '🌐  www.meirelesefreitas.com.br'];
+      // Ícone câmera (Instagram) + texto
       ctx.font = (10 * SCALE) + 'px Arial';
       ctx.fillStyle = 'rgba(255,255,255,0.9)';
-      socials.forEach(function(s, i) {
-        ctx.fillText(s, sx, gy + (10 + i * 13) * SCALE);
+      var socialLines = [
+        { icon: '📷', text: '@meirelesefreitas' },
+        { icon: null,  text: '/meirelesefreitas', fb: true },
+        { icon: '🌐', text: 'www.meirelesefreitas.com.br' }
+      ];
+      socialLines.forEach(function(s, i) {
+        var ty = gy + (10 + i * 13) * SCALE;
+        if (s.fb) {
+          // Desenhar ícone Facebook via Path2D
+          var bx = sx, by = ty - 8 * SCALE, bs = 10 * SCALE;
+          ctx.save();
+          ctx.fillStyle = 'rgba(255,255,255,0.9)';
+          ctx.translate(bx, by);
+          ctx.scale(bs / 24, bs / 24);
+          var p = new Path2D('M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z');
+          ctx.fill(p);
+          ctx.restore();
+          ctx.fillStyle = 'rgba(255,255,255,0.9)';
+          ctx.font = (10 * SCALE) + 'px Arial';
+          ctx.fillText(s.text, sx + 13 * SCALE, ty);
+        } else {
+          ctx.fillText(s.icon + '  ' + s.text, sx, ty);
+        }
       });
 
       // Logo ou fallback texto
