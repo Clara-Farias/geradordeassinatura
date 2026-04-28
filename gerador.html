@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerador de Assinatura — Meireles & Freitas</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f4f5f7;
+      color: #1a1a1a;
+      min-height: 100vh;
+      padding: 32px 16px;
+    }
+
+    .header { max-width: 1000px; margin: 0 auto 24px; }
+    h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+    .subtitle { font-size: 13px; color: #666; }
+
+    .app {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 24px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    @media (max-width: 760px) { .app { grid-template-columns: 1fr; } }
+
+    /* ── PAINEL ── */
+    .panel {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .panel-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      margin-bottom: 12px;
+      margin-top: 18px;
+    }
+    .panel-title:first-child { margin-top: 0; }
+
+    /* ── CAMPOS ── */
+    .field { margin-bottom: 12px; }
+    .field label { display: block; font-size: 12px; color: #555; font-weight: 500; margin-bottom: 4px; }
+    .field input[type="text"],
+    .field input[type="email"] {
+      width: 100%;
+      padding: 8px 10px;
+      font-size: 14px;
+      border: 1px solid #ddd;
+      border-radius: 7px;
+      outline: none;
+      font-family: Arial, Helvetica, sans-serif;
+      transition: border-color 0.15s;
+    }
+    .field input:focus { border-color: #2db659; }
+
+    /* ── UPLOADS ── */
+    .upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 4px; }
+    .upload-label { font-size: 12px; color: #555; font-weight: 500; margin-bottom: 5px; }
+    .upload-area {
+      border: 1.5px dashed #ccc;
+      border-radius: 8px;
+      padding: 12px 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      user-select: none;
+    }
+    .upload-area:hover { background: #f7f7f7; border-color: #2db659; }
+    .upload-area input { display: none; }
+    .upload-icon { font-size: 22px; }
+    .upload-name { font-size: 11px; color: #888; margin-top: 4px; }
+    .thumb-photo {
+      width: 48px; height: 48px; border-radius: 50%;
+      object-fit: cover; display: none;
+      margin: 0 auto 4px; border: 2px solid #2db659;
+    }
+    .thumb-logo {
+      width: 64px; height: 36px; object-fit: contain;
+      display: none; margin: 0 auto 4px;
+    }
+
+    /* ── CORES ── */
+    .color-swatches { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    .swatch {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: 2.5px solid transparent;
+      cursor: pointer;
+      transition: transform 0.1s, border-color 0.15s;
+    }
+    .swatch:hover { transform: scale(1.12); }
+    .swatch.active { border-color: #1a1a1a; }
+    .color-custom { display: flex; gap: 8px; align-items: center; }
+    .color-custom input[type="color"] {
+      width: 40px; height: 36px;
+      border: 1px solid #ddd; border-radius: 7px;
+      cursor: pointer; padding: 2px;
+    }
+    .color-custom input[type="text"] {
+      flex: 1; padding: 8px 10px; font-size: 14px;
+      border: 1px solid #ddd; border-radius: 7px;
+      outline: none; font-family: Arial, Helvetica, sans-serif;
+    }
+    .color-custom input[type="text"]:focus { border-color: #2db659; }
+
+    /* ── BOTÕES ── */
+    .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; }
+    .btn {
+      padding: 11px; font-size: 13px; font-weight: 700;
+      border: none; border-radius: 8px; cursor: pointer;
+      font-family: Arial, Helvetica, sans-serif;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-html { background: #2db659; color: #fff; }
+    .btn-html:hover { background: #27a350; }
+    .btn-png { background: #1a1a2e; color: #fff; }
+    .btn-png:hover { background: #2e2e50; }
+    .btn-png:disabled { background: #aaa; cursor: not-allowed; transform: none; }
+
+    .msg {
+      display: none; font-size: 12px; font-weight: 600;
+      text-align: center; margin-top: 8px;
+    }
+
+    /* ── PREVIEW ── */
+    .preview-scroll { overflow-x: auto; margin-bottom: 8px; }
+    .preview-hint { font-size: 11px; color: #999; text-align: center; }
+
+    /* ── ASSINATURA ── */
+    #sig {
+      width: 600px; min-width: 600px;
+      border-radius: 10px; overflow: hidden;
+      display: flex; align-items: stretch;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #2db659;
+    }
+
+    /* coluna da foto */
+    #sig-photo-col {
+      width: 150px; min-width: 150px; max-width: 150px;
+      flex-shrink: 0;
+      background-size: cover;
+      background-position: center top;
+      background-repeat: no-repeat;
+      align-self: stretch;
+    }
+    #sig-photo { display: none; }
+    #sig-placeholder {
+      width: 150px;
+      min-height: 140px;
+      height: 100%;
+      display: flex; align-items: flex-end; justify-content: center;
+      padding-bottom: 8px; font-size: 60px;
+      background: rgba(0,0,0,0.12);
+    }
+
+    /* conteúdo central */
+    #sig-content {
+      flex: 1;
+      padding: 16px 18px 12px;
+      display: flex; flex-direction: column; justify-content: space-between;
+    }
+    #sig-name  { font-size: 20px; font-weight: 800; color: #fff; line-height: 1.1; }
+    #sig-role  { font-size: 12px; color: rgba(255,255,255,0.85); margin-top: 3px; margin-bottom: 10px; }
+    #sig-phone { font-size: 22px; font-weight: 700; color: #fff; }
+    #sig-email { font-size: 11px; color: rgba(255,255,255,0.9); margin-top: 3px; margin-bottom: 12px; word-break: break-all; }
+
+    .sig-bottom { display: flex; align-items: center; gap: 10px; }
+    .sig-gptw {
+      background: #e8232a; color: #fff;
+      font-size: 8px; font-weight: 800; line-height: 1.3;
+      padding: 5px 6px; border-radius: 3px;
+      text-align: center; min-width: 42px; flex-shrink: 0;
+    }
+    .sig-socials { display: flex; flex-direction: column; gap: 4px; }
+    .sig-social-row { display: flex; align-items: center; gap: 6px; font-size: 10px; color: rgba(255,255,255,0.9); }
+    .sig-social-icon {
+      width: 15px; height: 15px; border-radius: 3px;
+      background: rgba(255,255,255,0.25);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; flex-shrink: 0;
+    }
+
+    /* coluna da logo */
+    #sig-logo-col {
+      width: 130px; min-width: 130px; flex-shrink: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 12px;
+    }
+    #sig-logo-img { max-width: 100px; max-height: 70px; object-fit: contain; display: none; }
+    #sig-logo-fallback { display: flex; flex-direction: column; align-items: center; }
+    .sig-logo-text {
+      color: rgba(255,255,255,0.9); font-size: 10px;
+      font-weight: 700; text-align: center;
+      margin-top: 6px; letter-spacing: 0.05em;
+    }
+
+    /* spinner */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      display: inline-block; width: 13px; height: 13px;
+      border: 2px solid rgba(255,255,255,0.35);
+      border-top-color: #fff; border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle; margin-right: 5px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Gerador de Assinatura de Email</h1>
+  <p class="subtitle">Meireles & Freitas — Preencha os dados, envie foto e logo, e exporte.</p>
+</div>
+
+<div class="app">
+
+  <!-- FORMULÁRIO -->
+  <div class="panel">
+
+    <p class="panel-title">Arquivos</p>
+    <div class="upload-grid">
+      <div>
+        <p class="upload-label">Foto do colaborador</p>
+        <div class="upload-area" onclick="document.getElementById('inp-photo').click()">
+          <img class="thumb-photo" id="thumb-photo" src="" alt="">
+          <div class="upload-icon" id="icon-photo">📷</div>
+          <p class="upload-name" id="name-photo">Enviar foto</p>
+          <input type="file" id="inp-photo" accept="image/*">
+        </div>
+      </div>
+      <div>
+        <p class="upload-label">Logo da empresa</p>
+        <div class="upload-area" onclick="document.getElementById('inp-logo').click()">
+          <img class="thumb-logo" id="thumb-logo" src="" alt="">
+          <div class="upload-icon" id="icon-logo">🏢</div>
+          <p class="upload-name" id="name-logo">Enviar logo</p>
+          <input type="file" id="inp-logo" accept="image/*">
+        </div>
+      </div>
+    </div>
+
+    <p class="panel-title">Dados do colaborador</p>
+    <div class="field">
+      <label>Nome completo</label>
+      <input type="text" id="f-name" value="Clara Lima" oninput="renderPreview()">
+    </div>
+    <div class="field">
+      <label>Cargo</label>
+      <input type="text" id="f-role" value="Analista de Produtos" oninput="renderPreview()">
+    </div>
+    <div class="field">
+      <label>Telefone</label>
+      <input type="text" id="f-phone" value="(85) 98534-7336" oninput="renderPreview()">
+    </div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="f-email" value="clarafarias@meirelesefreitas.com.br" oninput="renderPreview()">
+    </div>
+
+    <p class="panel-title">Cor de fundo</p>
+    <div class="color-swatches">
+      <div class="swatch active" data-color="#2db659" style="background:#2db659" onclick="pickSwatch(this)"></div>
+      <div class="swatch" data-color="#1a7cc9" style="background:#1a7cc9" onclick="pickSwatch(this)"></div>
+      <div class="swatch" data-color="#e8232a" style="background:#e8232a" onclick="pickSwatch(this)"></div>
+      <div class="swatch" data-color="#f5a623" style="background:#f5a623" onclick="pickSwatch(this)"></div>
+      <div class="swatch" data-color="#6c3eb1" style="background:#6c3eb1" onclick="pickSwatch(this)"></div>
+      <div class="swatch" data-color="#1a1a2e" style="background:#1a1a2e" onclick="pickSwatch(this)"></div>
+    </div>
+    <div class="field">
+      <label>Cor personalizada</label>
+      <div class="color-custom">
+        <input type="color" id="color-picker" value="#2db659" oninput="pickCustom(this.value)">
+        <input type="text"  id="color-hex"    value="#2db659" oninput="pickCustom(this.value)" placeholder="#2db659">
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-html" onclick="copyHTML()">📋 Copiar HTML</button>
+      <button class="btn btn-png" id="btn-png" onclick="exportPNG()">🖼 Exportar PNG</button>
+    </div>
+    <div class="msg" id="msg"></div>
+
+  </div>
+
+  <!-- PREVIEW -->
+  <div class="panel">
+    <p class="panel-title" style="margin-top:0">Preview da assinatura</p>
+    <div class="preview-scroll">
+
+      <div id="sig">
+
+        <!-- FOTO -->
+        <div id="sig-photo-col">
+          <div id="sig-placeholder">🧑</div>
+          <img id="sig-photo" src="" alt="">
+        </div>
+
+        <!-- DADOS -->
+        <div id="sig-content">
+          <div>
+            <div id="sig-name">CLARA LIMA</div>
+            <div id="sig-role">Analista de Produtos</div>
+            <div id="sig-phone">(85) 98534-7336</div>
+            <div id="sig-email">clarafarias@meirelesefreitas.com.br</div>
+          </div>
+          <div class="sig-bottom">
+            <div class="sig-gptw">Great<br>Place<br>To<br>Work</div>
+            <div class="sig-socials">
+              <div class="sig-social-row">
+                <div class="sig-social-icon">📷</div>
+                <span>@meirelesefreitas</span>
+              </div>
+              <div class="sig-social-row">
+                <div class="sig-social-icon">
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+                  </svg>
+                </div>
+                <span>/meirelesefreitas</span>
+              </div>
+              <div class="sig-social-row">
+                <div class="sig-social-icon">🌐</div>
+                <span>www.meirelesefreitas.com.br</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LOGO -->
+        <div id="sig-logo-col">
+          <div id="sig-logo-fallback">
+            <svg width="70" height="60" viewBox="0 0 70 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M10 55 L25 15 L35 40 L45 15 L60 55" stroke="rgba(255,255,255,0.3)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              <path d="M10 55 L25 15 L35 40 L45 15 L60 55" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            </svg>
+            <div class="sig-logo-text">MEIRELES & FREITAS</div>
+          </div>
+          <img id="sig-logo-img" src="" alt="logo">
+        </div>
+
+      </div>
+    </div>
+    <p class="preview-hint">600px — compatível com Gmail, Outlook e Apple Mail</p>
+  </div>
+
+</div>
+
+<script>
+  var photoUrl = null;
+  var logoUrl  = null;
+  var bgColor  = '#2db659';
+
+  // ── UPLOADS ──
+  function setupUpload(inputId, thumbId, iconId, nameId, onLoad) {
+    document.getElementById(inputId).addEventListener('change', function(e) {
+      var file = e.target.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(ev) {
+        var url = ev.target.result;
+        var thumb = document.getElementById(thumbId);
+        thumb.src = url;
+        thumb.style.display = 'block';
+        document.getElementById(iconId).style.display = 'none';
+        var n = file.name;
+        document.getElementById(nameId).textContent = n.length > 16 ? n.slice(0,14) + '…' : n;
+        onLoad(url);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  setupUpload('inp-photo', 'thumb-photo', 'icon-photo', 'name-photo', function(url) {
+    photoUrl = url;
+    var col = document.getElementById('sig-photo-col');
+    col.style.backgroundImage = 'url(' + url + ')';
+    document.getElementById('sig-placeholder').style.display = 'none';
+  });
+
+  setupUpload('inp-logo', 'thumb-logo', 'icon-logo', 'name-logo', function(url) {
+    logoUrl = url;
+    document.getElementById('sig-logo-img').src = url;
+    document.getElementById('sig-logo-img').style.display = 'block';
+    document.getElementById('sig-logo-fallback').style.display = 'none';
+  });
+
+  // ── CORES ──
+  function pickSwatch(el) {
+    document.querySelectorAll('.swatch').forEach(function(b) { b.classList.remove('active'); });
+    el.classList.add('active');
+    setColor(el.dataset.color);
+  }
+
+  function pickCustom(hex) {
+    if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(hex)) {
+      document.querySelectorAll('.swatch').forEach(function(b) { b.classList.remove('active'); });
+      setColor(hex);
+      document.getElementById('color-picker').value = hex;
+      document.getElementById('color-hex').value = hex;
+    }
+  }
+
+  function setColor(hex) {
+    bgColor = hex;
+    document.getElementById('sig').style.background = hex;
+    document.getElementById('color-picker').value = hex;
+    document.getElementById('color-hex').value = hex;
+  }
+
+  // ── RENDER PREVIEW ──
+  function renderPreview() {
+    document.getElementById('sig-name').textContent  = document.getElementById('f-name').value.toUpperCase();
+    document.getElementById('sig-role').textContent  = document.getElementById('f-role').value;
+    document.getElementById('sig-phone').textContent = document.getElementById('f-phone').value;
+    document.getElementById('sig-email').textContent = document.getElementById('f-email').value;
+  }
+
+  // ── GERAR HTML EXPORTÁVEL ──
+  function buildHTML() {
+    var name  = document.getElementById('f-name').value.toUpperCase();
+    var role  = document.getElementById('f-role').value;
+    var phone = document.getElementById('f-phone').value;
+    var email = document.getElementById('f-email').value;
+
+    var photoTd = photoUrl
+      ? '<td style="width:150px;padding:0;background-image:url(' + photoUrl + ');background-size:cover;background-position:center top;background-repeat:no-repeat;"></td>'
+      : '<td style="width:150px;padding:0;vertical-align:bottom;background:rgba(0,0,0,0.12);text-align:center;font-size:64px;">🧑</td>';
+
+    var logoContent = logoUrl
+      ? '<img src="' + logoUrl + '" style="max-width:100px;max-height:70px;object-fit:contain;display:block;margin:0 auto;" alt="logo">'
+      : '<svg width="70" height="60" viewBox="0 0 70 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 55 L25 15 L35 40 L45 15 L60 55" stroke="rgba(255,255,255,0.3)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M10 55 L25 15 L35 40 L45 15 L60 55" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><div style="color:rgba(255,255,255,0.9);font-size:10px;font-weight:700;text-align:center;margin-top:6px;letter-spacing:0.05em;">MEIRELES &amp; FREITAS</div>';
+
+    return '<table cellpadding="0" cellspacing="0" border="0" style="background:' + bgColor + ';border-radius:10px;overflow:hidden;width:600px;font-family:Arial,Helvetica,sans-serif;">'
+      + '<tr>'
+      + photoTd
+      + '<td style="padding:16px 18px 12px;vertical-align:top;">'
+        + '<div style="font-size:20px;font-weight:800;color:#fff;line-height:1.1;">' + name + '</div>'
+        + '<div style="font-size:12px;color:rgba(255,255,255,0.85);margin-top:3px;margin-bottom:10px;">' + role + '</div>'
+        + '<div style="font-size:22px;font-weight:700;color:#fff;">' + phone + '</div>'
+        + '<div style="font-size:11px;color:rgba(255,255,255,0.9);margin-top:3px;margin-bottom:12px;">' + email + '</div>'
+        + '<table cellpadding="0" cellspacing="0" border="0"><tr>'
+          + '<td style="vertical-align:top;padding-right:10px;"><div style="background:#e8232a;color:#fff;font-size:8px;font-weight:800;line-height:1.3;padding:5px 6px;border-radius:3px;text-align:center;">Great<br>Place<br>To<br>Work</div></td>'
+          + '<td style="vertical-align:top;">'
+            + '<div style="font-size:10px;color:rgba(255,255,255,0.9);margin-bottom:4px;">📷 @meirelesefreitas</div>'
+            + '<div style="font-size:10px;color:rgba(255,255,255,0.9);margin-bottom:4px;">f /meirelesefreitas</div>'
+            + '<div style="font-size:10px;color:rgba(255,255,255,0.9);">🌐 www.meirelesefreitas.com.br</div>'
+          + '</td>'
+        + '</tr></table>'
+      + '</td>'
+      + '<td style="width:130px;vertical-align:middle;text-align:center;padding:12px;">' + logoContent + '</td>'
+      + '</tr></table>';
+  }
+
+  // ── COPIAR HTML ──
+  function copyHTML() {
+    var html = buildHTML();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(html).then(function() {
+        showMsg('✓ Copiado! Cole no seu cliente de email.', '#2db659');
+      });
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = html;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showMsg('✓ Copiado! Cole no seu cliente de email.', '#2db659');
+    }
+  }
+
+  // ── EXPORTAR PNG (canvas direto — alta qualidade) ──
+  function exportPNG() {
+    var btn = document.getElementById('btn-png');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Gerando...';
+
+    var SCALE  = 3;
+    var W      = 600 * SCALE;
+    var name   = document.getElementById('f-name').value.toUpperCase();
+    var role   = document.getElementById('f-role').value;
+    var phone  = document.getElementById('f-phone').value;
+    var email  = document.getElementById('f-email').value;
+
+    // Medir altura real da assinatura no DOM
+    var sigEl = document.getElementById('sig');
+    var H     = Math.min(sigEl.offsetHeight, 160) * SCALE;
+
+    var canvas = document.createElement('canvas');
+    canvas.width  = W;
+    canvas.height = H;
+    canvas.style.background = 'transparent';
+    var ctx = canvas.getContext('2d');
+
+    // Fundo com bordas arredondadas
+    var r = 10 * SCALE;
+    ctx.clearRect(0, 0, W, H);
+    ctx.beginPath();
+    ctx.moveTo(r, 0); ctx.lineTo(W - r, 0);
+    ctx.quadraticCurveTo(W, 0, W, r);
+    ctx.lineTo(W, H - r);
+    ctx.quadraticCurveTo(W, H, W - r, H);
+    ctx.lineTo(r, H);
+    ctx.quadraticCurveTo(0, H, 0, H - r);
+    ctx.lineTo(0, r);
+    ctx.quadraticCurveTo(0, 0, r, 0);
+    ctx.closePath();
+    ctx.fillStyle = bgColor;
+    ctx.fill();
+    ctx.save();
+    ctx.clip(); // tudo dentro das bordas arredondadas
+
+    function drawText() {
+      var photoW = 150 * SCALE;
+      var logoW  = 130 * SCALE;
+      var contentX = photoW + 18 * SCALE;
+      var contentW = W - photoW - logoW;
+
+      // Nome
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold ' + (20 * SCALE) + 'px Arial';
+      ctx.fillText(name, contentX, 36 * SCALE);
+
+      // Cargo
+      ctx.font = (12 * SCALE) + 'px Arial';
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      ctx.fillText(role, contentX, 54 * SCALE);
+
+      // Telefone
+      ctx.font = 'bold ' + (22 * SCALE) + 'px Arial';
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(phone, contentX, 84 * SCALE);
+
+      // Email
+      ctx.font = (11 * SCALE) + 'px Arial';
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.fillText(email, contentX, 100 * SCALE);
+
+      // GPTW box
+      var gx = contentX;
+      var gy = 112 * SCALE;
+      var gw = 42 * SCALE;
+      var gh = 42 * SCALE;
+      ctx.fillStyle = '#e8232a';
+      ctx.beginPath();
+      ctx.roundRect(gx, gy, gw, gh, 3 * SCALE);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold ' + (8 * SCALE) + 'px Arial';
+      ctx.textAlign = 'center';
+      var lines = ['Great','Place','To','Work'];
+      lines.forEach(function(l, i) {
+        ctx.fillText(l, gx + gw/2, gy + (9 + i * 9) * SCALE);
+      });
+      ctx.textAlign = 'left';
+
+      // Redes sociais
+      var sx = contentX + gw + 10 * SCALE;
+      var socials = ['📷  @meirelesefreitas', 'fb  /meirelesefreitas', '🌐  www.meirelesefreitas.com.br'];
+      ctx.font = (10 * SCALE) + 'px Arial';
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      socials.forEach(function(s, i) {
+        ctx.fillText(s, sx, gy + (10 + i * 13) * SCALE);
+      });
+
+      // Logo ou fallback texto
+      var lx = W - logoW;
+      if (logoUrl) {
+        var logoImg = new Image();
+        logoImg.onload = function() {
+          var maxW = 100 * SCALE;
+          var maxH = 70 * SCALE;
+          var ratio = Math.min(maxW / logoImg.width, maxH / logoImg.height);
+          var lw = logoImg.width * ratio;
+          var lh = logoImg.height * ratio;
+          var lox = lx + (logoW - lw) / 2;
+          var loy = (H - lh) / 2;
+          ctx.drawImage(logoImg, lox, loy, lw, lh);
+          finish();
+        };
+        logoImg.src = logoUrl;
+      } else {
+        // Desenhar M estilizado
+        ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+        ctx.lineWidth = 4 * SCALE;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        var mx = lx + 30 * SCALE, my = H/2 - 25*SCALE, msc = SCALE;
+        ctx.beginPath();
+        ctx.moveTo(mx + 0, my + 40*msc);
+        ctx.lineTo(mx + 15*msc, my);
+        ctx.lineTo(mx + 25*msc, my + 25*msc);
+        ctx.lineTo(mx + 35*msc, my);
+        ctx.lineTo(mx + 50*msc, my + 40*msc);
+        ctx.stroke();
+        ctx.font = 'bold ' + (9 * SCALE) + 'px Arial';
+        ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        ctx.textAlign = 'center';
+        ctx.fillText('MEIRELES & FREITAS', lx + logoW/2, H - 14 * SCALE);
+        ctx.textAlign = 'left';
+        finish();
+      }
+    }
+
+    function finish() {
+      ctx.restore();
+      var slug = document.getElementById('f-name').value.trim().toLowerCase().replace(/\s+/g,'-') || 'assinatura';
+      canvas.toBlob(function(blob) {
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url; a.download = 'assinatura-' + slug + '.png';
+        a.click(); URL.revokeObjectURL(url);
+        showMsg('✓ PNG baixado! (' + canvas.width + ' × ' + canvas.height + 'px)', '#1a1a2e');
+        btn.disabled = false;
+        btn.innerHTML = '🖼 Exportar PNG';
+      }, 'image/png');
+    }
+
+    // Foto
+    if (photoUrl) {
+      var img = new Image();
+      img.onload = function() {
+        var pw = 150 * SCALE;
+        // Salvar e criar clip só para a área da foto (sem bordas)
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, pw, H);
+        ctx.clip();
+        var ratio = Math.max(pw / img.width, H / img.height);
+        var dw = img.width * ratio;
+        var dh = img.height * ratio;
+        var dx = (pw - dw) / 2;
+        var dy = 0;
+        ctx.drawImage(img, dx, dy, dw, dh);
+        ctx.restore();
+        drawText();
+      };
+      img.src = photoUrl;
+    } else {
+      ctx.fillStyle = 'rgba(0,0,0,0.12)';
+      ctx.fillRect(0, 0, 150 * SCALE, H);
+      ctx.font = (60 * SCALE) + 'px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('🧑', 75 * SCALE, H - 15 * SCALE);
+      ctx.textAlign = 'left';
+      drawText();
+    }
+  }
+
+  function showMsg(text, color) {
+    var el = document.getElementById('msg');
+    el.textContent = text;
+    el.style.color = color;
+    el.style.display = 'block';
+    setTimeout(function() { el.style.display = 'none'; }, 4000);
+  }
+</script>
+
+</body>
+</html>
