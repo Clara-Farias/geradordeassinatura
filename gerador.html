@@ -140,7 +140,7 @@
     /* ── ASSINATURA ── */
     #sig {
       width: 600px; min-width: 600px;
-      border-radius: 10px; overflow: hidden;
+      overflow: hidden;
       display: flex; align-items: stretch;
       font-family: Arial, Helvetica, sans-serif;
       background: #2db659;
@@ -317,19 +317,21 @@
             <div class="sig-gptw">Great<br>Place<br>To<br>Work</div>
             <div class="sig-socials">
               <div class="sig-social-row">
-                <div class="sig-social-icon">📷</div>
+                <div class="sig-social-icon">
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                </div>
                 <span>@meirelesefreitas</span>
               </div>
               <div class="sig-social-row">
                 <div class="sig-social-icon">
-                  <svg width="9" height="9" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
-                  </svg>
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
                 </div>
                 <span>/meirelesefreitas</span>
               </div>
               <div class="sig-social-row">
-                <div class="sig-social-icon">🌐</div>
+                <div class="sig-social-icon">
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                </div>
                 <span>www.meirelesefreitas.com.br</span>
               </div>
             </div>
@@ -485,23 +487,11 @@
     canvas.style.background = 'transparent';
     var ctx = canvas.getContext('2d');
 
-    // Fundo com bordas arredondadas
-    var r = 10 * SCALE;
+    // Fundo simples sem bordas
     ctx.clearRect(0, 0, W, H);
-    ctx.beginPath();
-    ctx.moveTo(r, 0); ctx.lineTo(W - r, 0);
-    ctx.quadraticCurveTo(W, 0, W, r);
-    ctx.lineTo(W, H - r);
-    ctx.quadraticCurveTo(W, H, W - r, H);
-    ctx.lineTo(r, H);
-    ctx.quadraticCurveTo(0, H, 0, H - r);
-    ctx.lineTo(0, r);
-    ctx.quadraticCurveTo(0, 0, r, 0);
-    ctx.closePath();
     ctx.fillStyle = bgColor;
-    ctx.fill();
+    ctx.fillRect(0, 0, W, H);
     ctx.save();
-    ctx.clip(); // tudo dentro das bordas arredondadas
 
     function drawText() {
       var photoW = 150 * SCALE;
@@ -549,32 +539,41 @@
 
       // Redes sociais
       var sx = contentX + gw + 10 * SCALE;
-      // Ícone câmera (Instagram) + texto
+      var iconSize = 10 * SCALE;  // tamanho do ícone SVG
+      var textOffsetX = sx + iconSize + 5 * SCALE; // texto sempre na mesma coluna
       ctx.font = (10 * SCALE) + 'px Arial';
       ctx.fillStyle = 'rgba(255,255,255,0.9)';
-      var socialLines = [
-        { icon: '📷', text: '@meirelesefreitas' },
-        { icon: null,  text: '/meirelesefreitas', fb: true },
-        { icon: '🌐', text: 'www.meirelesefreitas.com.br' }
+
+      // Paths SVG para cada ícone (viewBox 24x24)
+      var iconPaths = {
+        instagram: 'M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z',
+        facebook:  'M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z',
+        website:   'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z'
+      };
+
+      var socials = [
+        { path: iconPaths.instagram, text: '@meirelesefreitas' },
+        { path: iconPaths.facebook,  text: '/meirelesefreitas' },
+        { path: iconPaths.website,   text: 'www.meirelesefreitas.com.br' }
       ];
-      socialLines.forEach(function(s, i) {
-        var ty = gy + (10 + i * 13) * SCALE;
-        if (s.fb) {
-          // Desenhar ícone Facebook via Path2D
-          var bx = sx, by = ty - 8 * SCALE, bs = 10 * SCALE;
-          ctx.save();
-          ctx.fillStyle = 'rgba(255,255,255,0.9)';
-          ctx.translate(bx, by);
-          ctx.scale(bs / 24, bs / 24);
-          var p = new Path2D('M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z');
-          ctx.fill(p);
-          ctx.restore();
-          ctx.fillStyle = 'rgba(255,255,255,0.9)';
-          ctx.font = (10 * SCALE) + 'px Arial';
-          ctx.fillText(s.text, sx + 13 * SCALE, ty);
-        } else {
-          ctx.fillText(s.icon + '  ' + s.text, sx, ty);
-        }
+
+      socials.forEach(function(s, i) {
+        var lineY = gy + i * 13 * SCALE;          // base Y da linha
+        var iconY = lineY + 1 * SCALE;             // ícone alinhado ao topo da linha
+        var textY = lineY + iconSize - 1 * SCALE;  // texto alinhado à base do ícone
+
+        // Desenhar ícone SVG
+        ctx.save();
+        ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        ctx.translate(sx, iconY);
+        ctx.scale(iconSize / 24, iconSize / 24);
+        ctx.fill(new Path2D(s.path));
+        ctx.restore();
+
+        // Desenhar texto alinhado
+        ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        ctx.font = (10 * SCALE) + 'px Arial';
+        ctx.fillText(s.text, textOffsetX, textY);
       });
 
       // Logo ou fallback texto
